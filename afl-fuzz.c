@@ -3413,7 +3413,7 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     u32 cksum;
 
-    if (!first_run && !(stage_cur % stats_update_freq)) show_stats();
+    if (!first_run && !(stage_cur % stats_update_freq) && !corpus_read_or_sync) show_stats();
 
     write_to_testcase(use_mem, q->len);
 
@@ -3512,7 +3512,7 @@ abort_calibration:
   stage_cur  = old_sc;
   stage_max  = old_sm;
 
-  if (!first_run) show_stats();
+  if (!first_run && !corpus_read_or_sync) show_stats();
 
   return fault;
 
@@ -7726,6 +7726,12 @@ static void sync_fuzzers(char** argv) {
 
         /* See what happens. We rely on save_if_interesting() to catch major
            errors and save the test case. */
+        /* AFLNet: set this flag to enable request extractions while adding new seed to the queue */
+        region_t *regions;
+        u32 region_count;
+        regions = (*extract_requests)(mem, st.st_size, &region_count);
+        // add_to_queue(path, st.st_size, 0);
+        kl_messages = construct_kl_messages(path, regions, region_count);
 
         write_to_testcase(mem, st.st_size);
 
@@ -7739,13 +7745,15 @@ static void sync_fuzzers(char** argv) {
         syncing_party = sd_ent->d_name;
         queued_imported += save_if_interesting(argv, mem, st.st_size, fault);
         syncing_party = 0;
+        /* AFLNet delete the kl_messages */
+        delete_kl_messages(kl_messages);
 
         /* AFLNet: unset this flag to disable request extractions while adding new seed to the queue */
         corpus_read_or_sync = 0;
 
         munmap(mem, st.st_size);
 
-        if (!(stage_cur++ % stats_update_freq)) show_stats();
+        // if (!(stage_cur++ % stats_update_freq)) show_stats();
 
       }
 
@@ -9166,7 +9174,7 @@ int main(int argc, char** argv) {
     if (state_ids_count == 0) {
       PFATAL("No server states have been detected. Server responses are likely empty!");
     }
-
+    sync_fuzzers(use_argv);
     while (1) {
       u8 skipped_fuzz;
 
