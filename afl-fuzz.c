@@ -9177,7 +9177,6 @@ int main(int argc, char** argv) {
     if (state_ids_count == 0) {
       PFATAL("No server states have been detected. Server responses are likely empty!");
     }
-    sync_fuzzers(use_argv);
     while (1) {
       u8 skipped_fuzz;
 
@@ -9221,7 +9220,7 @@ int main(int argc, char** argv) {
 
       if (!stop_soon && sync_id && !skipped_fuzz) {
 
-        if (!(sync_interval_cnt++ % SYNC_INTERVAL))
+    //    if (!(sync_interval_cnt++ % SYNC_INTERVAL))
           sync_fuzzers(use_argv);
 
       }
