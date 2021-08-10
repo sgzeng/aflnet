@@ -7746,6 +7746,7 @@ static void sync_fuzzers(char** argv) {
         queued_imported += save_if_interesting(argv, mem, st.st_size, fault);
         syncing_party = 0;
         /* AFLNet delete the kl_messages */
+        ck_free(regions);
         delete_kl_messages(kl_messages);
 
         /* AFLNet: unset this flag to disable request extractions while adding new seed to the queue */
